@@ -18,7 +18,18 @@ Como parámetro hay que pasarle un Collector y existen los siguientes predefinid
 | `Collectors`   | `public static <T> Collector<T,?,Map<Boolean,List<T>>> partitioningBy(Predicate<? super T> predicate)`                                        |
 | `Collectors`   | `public static <T,D,A> Collector<T,?,Map<Boolean,D>> partitioningBy(Predicate<? super T> predicate, Collector<? super T,A,D> downstream)`     |
 
-Ejemplos de uso de Collectors en el método collect de Stream:
+A mayores, disponemos de los siguientes métodos para convertir Streams, Lists y Sets a arrays:
+
+| Interfaz    | Método                                        |
+|-------------|-----------------------------------------------|
+| `Stream<T>` | `Object[] toArray()`                          |
+| `Stream<T>` | `<A> A[] toArray(IntFunction<A[]> generator)` |
+| `List<E>`   | `Object[] toArray()`                          |
+| `List<E>`   | `<T> T[] toArray(T[] a)`                      |
+| `Set<E>`    | `Object[] toArray()`                          |
+| `Set<E>`    | `<T> T[] toArray(T[] a)`                      |
+
+Ejemplos de uso de Collectors y toArray en Stream, List y Set:
 
 ```java
 import java.util.*;
@@ -128,22 +139,31 @@ public class Main {
         System.out.println("3. Collectors.toCollection()");
         this.processAndCollectToLinkedList(userCollection.stream());
 
-        System.out.println("4. Collectors.toMap()");
+        System.out.println("4. Stream.toArray()");
+        this.processAndCollectToArray(userCollection.stream());
+
+        System.out.println("5. List.toArray()");
+        this.processAndCollectToListAndToArray(userCollection.stream());
+
+        System.out.println("6. Set.toArray()");
+        this.processAndCollectToSetAndToArray(userCollection.stream());
+
+        System.out.println("7. Collectors.toMap()");
         this.processAndCollectToMap(userCollection.stream());
 
-        System.out.println("5. Collectors.collectingAndThen()");
+        System.out.println("8. Collectors.collectingAndThen()");
         this.processAndCollectToUnmodifiableList(userCollection.stream());
 
-        System.out.println("6. Collectors.groupingBy() sin collector");
+        System.out.println("9. Collectors.groupingBy() sin collector");
         this.processAndCollectGroupingByNickName(userCollection.stream());
 
-        System.out.println("7. Collectors.groupingBy() con collector");
+        System.out.println("10. Collectors.groupingBy() con collector");
         this.processAndCollectGroupingByNickNameAsSet(userCollection.stream());
 
-        System.out.println("8. Collectors.partitioningBy() sin collector");
+        System.out.println("11. Collectors.partitioningBy() sin collector");
         this.processAndCollectPartitioningByNickNameRobin(userCollection.stream());
 
-        System.out.println("9. Collectors.partitioningBy() con collector");
+        System.out.println("12. Collectors.partitioningBy() con collector");
         this.processAndCollectPartitioningByNickNameRobinAsSet(userCollection.stream());
     }
 
@@ -177,6 +197,46 @@ public class Main {
                     .collect(Collectors.toCollection(LinkedList::new));
 
             this.printCollectionAfterCollect(result);
+        } catch(Exception e) {
+            System.out.println(e.getClass().getCanonicalName() + " " + e.getMessage());
+        }
+        System.out.println();
+    }
+
+    private void processAndCollectToArray(Stream<User> userStream) {
+        try {
+            User[] result = this.processUserStream(userStream)
+                    .toArray(User[]::new);
+
+            this.printArrayAfterToArray(result);
+        } catch(Exception e) {
+            System.out.println(e.getClass().getCanonicalName() + " " + e.getMessage());
+        }
+        System.out.println();
+    }
+
+    private void processAndCollectToListAndToArray(Stream<User> userStream) {
+        try {
+            List<User> toListResult = this.processUserStream(userStream)
+                    .collect(Collectors.toList());
+
+            User[] toArrayResult = toListResult.toArray(User[]::new);
+
+            this.printArrayAfterToArray(toArrayResult);
+        } catch(Exception e) {
+            System.out.println(e.getClass().getCanonicalName() + " " + e.getMessage());
+        }
+        System.out.println();
+    }
+
+    private void processAndCollectToSetAndToArray(Stream<User> userStream) {
+        try {
+            Set<User> toSetResult = this.processUserStream(userStream)
+                    .collect(Collectors.toSet());
+
+            User[] toArrayResult = toSetResult.toArray(User[]::new);
+
+            this.printArrayAfterToArray(toArrayResult);
         } catch(Exception e) {
             System.out.println(e.getClass().getCanonicalName() + " " + e.getMessage());
         }
@@ -295,6 +355,11 @@ public class Main {
         this.printCollection(collection);
     }
 
+    private <T> void printArrayAfterToArray(T[] array) {
+        System.out.print("Tras toArray. ");
+        this.printArray(array);
+    }
+
     private <K, V> void printMapAfterCollect(Map<K, V> map) {
         System.out.print("Tras collect. ");
         this.printMap(map);
@@ -304,6 +369,15 @@ public class Main {
         System.out.println(collection.getClass().getCanonicalName() + ":");
         int i = 0;
         for(T element : collection) {
+            System.out.println("- [" + i + "]: " + element);
+            i++;
+        }
+    }
+
+    private <T> void printArray(T[] array) {
+        System.out.println(array.getClass().getCanonicalName() + ":");
+        int i = 0;
+        for(T element : array) {
             System.out.println("- [" + i + "]: " + element);
             i++;
         }
@@ -396,14 +470,58 @@ Tras collect. java.util.LinkedList:
 - [4]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
 - [5]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
 
-4. Collectors.toMap()
+4. Stream.toArray()
+Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+Antes de collect: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+Tras toArray. User[]:
+- [0]: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+- [1]: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+- [2]: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+- [3]: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+- [4]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+- [5]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+
+5. List.toArray()
+Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+Antes de collect: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+Tras toArray. User[]:
+- [0]: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+- [1]: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+- [2]: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+- [3]: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+- [4]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+- [5]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+
+6. Set.toArray()
+Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+Antes de collect: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+Tras toArray. User[]:
+- [0]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+- [1]: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+- [2]: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+- [3]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+- [4]: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+
+7. Collectors.toMap()
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
 java.lang.IllegalStateException Duplicate key 3 (attempted merging values User[id=3, name=Dick Grayson, nickName=ROBIN, age=20] and User[id=3, name=Dick Grayson, nickName=ROBIN, age=20])
 
-5. Collectors.collectingAndThen()
+8. Collectors.collectingAndThen()
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -418,7 +536,7 @@ Tras collect. java.util.Collections.UnmodifiableRandomAccessList:
 - [4]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
 - [5]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
 
-6. Collectors.groupingBy() sin collector
+9. Collectors.groupingBy() sin collector
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -430,7 +548,7 @@ Tras collect. java.util.HashMap:
 - ALFRED --> [User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]]
 - BATMAN --> [User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]]
 
-7. Collectors.groupingBy() con collector
+10. Collectors.groupingBy() con collector
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -442,7 +560,7 @@ Tras collect. java.util.HashMap:
 - ALFRED --> [User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]]
 - BATMAN --> [User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]]
 
-8. Collectors.partitioningBy() sin collector
+11. Collectors.partitioningBy() sin collector
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -453,7 +571,7 @@ Tras collect. java.util.stream.Collectors.Partition:
 - false --> [User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55], User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]]
 - true --> [User[id=3, name=Dick Grayson, nickName=ROBIN, age=20], User[id=3, name=Dick Grayson, nickName=ROBIN, age=20], User[id=4, name=Tim Drake, nickName=ROBIN, age=15], User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]]
 
-9. Collectors.partitioningBy() con collector
+12. Collectors.partitioningBy() con collector
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -506,7 +624,46 @@ Tras collect. java.util.LinkedList:
 - [3]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
 - [4]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
 
-4. Collectors.toMap()
+4. Stream.toArray()
+Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+Antes de collect: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+Tras toArray. User[]:
+- [0]: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+- [1]: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+- [2]: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+- [3]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+- [4]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+
+5. List.toArray()
+Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+Antes de collect: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+Tras toArray. User[]:
+- [0]: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+- [1]: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+- [2]: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+- [3]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+- [4]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+
+6. Set.toArray()
+Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+Antes de collect: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+Tras toArray. User[]:
+- [0]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+- [1]: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+- [2]: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+- [3]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+- [4]: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+
+7. Collectors.toMap()
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -519,7 +676,7 @@ Tras collect. java.util.HashMap:
 - 4 --> User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
 - 5 --> User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
 
-5. Collectors.collectingAndThen()
+8. Collectors.collectingAndThen()
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -532,7 +689,7 @@ Tras collect. java.util.Collections.UnmodifiableRandomAccessList:
 - [3]: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
 - [4]: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
 
-6. Collectors.groupingBy() sin collector
+9. Collectors.groupingBy() sin collector
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -543,7 +700,7 @@ Tras collect. java.util.HashMap:
 - ALFRED --> [User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]]
 - BATMAN --> [User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]]
 
-7. Collectors.groupingBy() con collector
+10. Collectors.groupingBy() con collector
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -554,7 +711,7 @@ Tras collect. java.util.HashMap:
 - ALFRED --> [User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]]
 - BATMAN --> [User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]]
 
-8. Collectors.partitioningBy() sin collector
+11. Collectors.partitioningBy() sin collector
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
@@ -564,7 +721,7 @@ Tras collect. java.util.stream.Collectors.Partition:
 - false --> [User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55], User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]]
 - true --> [User[id=3, name=Dick Grayson, nickName=ROBIN, age=20], User[id=4, name=Tim Drake, nickName=ROBIN, age=15], User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]]
 
-9. Collectors.partitioningBy() con collector
+12. Collectors.partitioningBy() con collector
 Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
 Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
 Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
