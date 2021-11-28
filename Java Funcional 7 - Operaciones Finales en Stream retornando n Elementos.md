@@ -1,22 +1,35 @@
 Si queremos convertir un Stream en una Collection o un Map disponemos del siguiente método de Stream:
 
-| Interfaz      | Método                                                |
-|---------------|-------------------------------------------------------|
-| `Stream<T>`   | `<R,A> R collect(Collector<? super T,A,R> collector)` |
+| Interfaz    | Método                                                |
+|-------------|-------------------------------------------------------|
+| `Stream<T>` | `<R,A> R collect(Collector<? super T,A,R> collector)` |
+
+donde:
+- T es el tipo de los elementos de entrada de la operación de reducción
+- A es el tipo de acumulación mutable de la operación de reducción (a menudo oculto como un detalle de implementación)
+- R es el tipo de resultado de la operación de reducción
 
 Como parámetro hay que pasarle un Collector y existen los siguientes predefinidos en Collectors:
 
-| Clase          | Método                                                                                                                                        |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
-| `Collectors`   | `public static <T> Collector<T,?,List<T>> toList()`                                                                                           |
-| `Collectors`   | `public static <T> Collector<T,?,Set<T>> toSet()`                                                                                             |
-| `Collectors`   | `public static <T,C extends Collection<T>> Collector<T,?,C> toCollection(Supplier<C> collectionFactory)`                                      |
-| `Collectors`   | `public static <T,K,U> Collector<T,?,Map<K,U>> toMap(Function<? super T,? extends K> keyMapper, Function<? super T,? extends U> valueMapper)` |
-| `Collectors`   | `public static <T,A,R,RR> Collector<T,A,RR> collectingAndThen(Collector<T,A,R> downstream, Function<R,RR> finisher)`                          |
-| `Collectors`   | `public static <T,K> Collector<T,?,Map<K,List<T>>> groupingBy(Function<? super T,? extends K> classifier)`                                    |
-| `Collectors`   | `public static <T,K,A,D> Collector<T,?,Map<K,D>> groupingBy(Function<? super T,? extends K> classifier, Collector<? super T,A,D> downstream)` |
-| `Collectors`   | `public static <T> Collector<T,?,Map<Boolean,List<T>>> partitioningBy(Predicate<? super T> predicate)`                                        |
-| `Collectors`   | `public static <T,D,A> Collector<T,?,Map<Boolean,D>> partitioningBy(Predicate<? super T> predicate, Collector<? super T,A,D> downstream)`     |
+| Clase        | Método                                                                                                                                        |
+|--------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| `Collectors` | `public static <T> Collector<T,?,List<T>> toList()`                                                                                           |
+| `Collectors` | `public static <T> Collector<T,?,Set<T>> toSet()`                                                                                             |
+| `Collectors` | `public static <T,C extends Collection<T>> Collector<T,?,C> toCollection(Supplier<C> collectionFactory)`                                      |
+| `Collectors` | `public static <T,K,U> Collector<T,?,Map<K,U>> toMap(Function<? super T,? extends K> keyMapper, Function<? super T,? extends U> valueMapper)` |
+| `Collectors` | `public static <T,A,R,RR> Collector<T,A,RR> collectingAndThen(Collector<T,A,R> downstream, Function<R,RR> finisher)`                          |
+| `Collectors` | `public static <T,K> Collector<T,?,Map<K,List<T>>> groupingBy(Function<? super T,? extends K> classifier)`                                    |
+| `Collectors` | `public static <T,K,A,D> Collector<T,?,Map<K,D>> groupingBy(Function<? super T,? extends K> classifier, Collector<? super T,A,D> downstream)` |
+| `Collectors` | `public static <T> Collector<T,?,Map<Boolean,List<T>>> partitioningBy(Predicate<? super T> predicate)`                                        |
+| `Collectors` | `public static <T,D,A> Collector<T,?,Map<Boolean,D>> partitioningBy(Predicate<? super T> predicate, Collector<? super T,A,D> downstream)`     |
+
+Existen también los siguientes Collectors que devuelven un único String a partir de Strings de entrada:
+
+| Clase        | Método                                                                                                                     |
+|--------------|----------------------------------------------------------------------------------------------------------------------------|
+| `Collectors` | `public static Collector<CharSequence,?,String> joining()`                                                                 |
+| `Collectors` | `public static Collector<CharSequence,?,String> joining(CharSequence delimiter)`                                           |
+| `Collectors` | `public static Collector<CharSequence,?,String> joining(CharSequence delimiter, CharSequence prefix, CharSequence suffix)` |
 
 A mayores, disponemos de los siguientes métodos para convertir Streams, Lists y Sets a arrays:
 
@@ -165,6 +178,9 @@ public class Main {
 
         System.out.println("12. Collectors.partitioningBy() con collector");
         this.processAndCollectPartitioningByNickNameRobinAsSet(userCollection.stream());
+
+        System.out.println("13. Collectors.joining()");
+        this.processAndCollectToString(userCollection.stream());
     }
 
     private void processAndCollectToList(Stream<User> userStream) {
@@ -328,6 +344,19 @@ public class Main {
         System.out.println();
     }
 
+    private void processAndCollectToString(Stream<User> userStream) {
+        try {
+            String result = this.processUserStream(userStream)
+                    .map(user -> user.toString())
+                    .collect(Collectors.joining(", ", "CollectorsJoiningResult[", "]"));
+
+            this.printStringAfterCollect(result);
+        } catch(Exception e) {
+            System.out.println(e.getClass().getCanonicalName() + " " + e.getMessage());
+        }
+        System.out.println();
+    }
+
     private Stream<User> processUserStream(Stream<User> userStream) {
         Stream<User> result = userStream
                 .filter(Objects::nonNull)
@@ -365,6 +394,10 @@ public class Main {
         this.printMap(map);
     }
 
+    private <T> void printStringAfterCollect(String collecResult) {
+        System.out.println("Tras collect. " + collecResult);
+    }
+
     private <T> void printCollection(Collection<T> collection) {
         System.out.println(collection.getClass().getCanonicalName() + ":");
         int i = 0;
@@ -389,6 +422,8 @@ public class Main {
     }
 }
 ```
+
+Resultado:
 
 ```txt
 BEFORE PROCESSING
@@ -582,6 +617,15 @@ Tras collect. java.util.stream.Collectors.Partition:
 - false --> [User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30], User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]]
 - true --> [User[id=5, name=Damian Wayne, nickName=ROBIN, age=12], User[id=3, name=Dick Grayson, nickName=ROBIN, age=20], User[id=4, name=Tim Drake, nickName=ROBIN, age=15]]
 
+13. Collectors.joining()
+Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+Antes de collect: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+Tras collect. CollectorsJoiningResult[User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55], User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30], User[id=3, name=Dick Grayson, nickName=ROBIN, age=20], User[id=3, name=Dick Grayson, nickName=ROBIN, age=20], User[id=4, name=Tim Drake, nickName=ROBIN, age=15], User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]]
+
 
 PROCESSING USER SET
 
@@ -731,6 +775,14 @@ Tras collect. java.util.stream.Collectors.Partition:
 - false --> [User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30], User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]]
 - true --> [User[id=5, name=Damian Wayne, nickName=ROBIN, age=12], User[id=3, name=Dick Grayson, nickName=ROBIN, age=20], User[id=4, name=Tim Drake, nickName=ROBIN, age=15]]
 
+13. Collectors.joining()
+Antes de collect: User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55]
+Antes de collect: User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30]
+Antes de collect: User[id=3, name=Dick Grayson, nickName=ROBIN, age=20]
+Antes de collect: User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
+Antes de collect: User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
+Tras collect. CollectorsJoiningResult[User[id=2, name=Alfred Pennyworth, nickName=ALFRED, age=55], User[id=1, name=Bruce Wayne, nickName=BATMAN, age=30], User[id=3, name=Dick Grayson, nickName=ROBIN, age=20], User[id=4, name=Tim Drake, nickName=ROBIN, age=15], User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]]
+
 
 PROCESSING USER MAP
 
@@ -746,4 +798,28 @@ Tras collect. java.util.HashMap:
 - 4 --> User[id=4, name=Tim Drake, nickName=ROBIN, age=15]
 - 5 --> User[id=5, name=Damian Wayne, nickName=ROBIN, age=12]
 
+```
+
+Desde Java 8, se dispone de la clase StringJoiner para hacer el mismo comportamiento que Collectors.joining().
+
+| Clase          | Método                                                                                  |
+|----------------|-----------------------------------------------------------------------------------------|
+| `StringJoiner` | `public StringJoiner​(CharSequence delimiter)`                                           |
+| `StringJoiner` | `public StringJoiner​(CharSequence delimiter, CharSequence prefix, CharSequence suffix)` |
+
+Ejemplo:
+
+```java
+record User(Long id, String name, String nickName, Integer age) {
+    @Override
+    public String toString() {
+        String result = new StringJoiner(", ", User.class.getSimpleName() + "{", "}")
+                .add("id=" + id)
+                .add("name='" + name + "'")
+                .add("nickName='" + nickName + "'")
+                .add("age=" + age)
+                .toString();
+        return result;
+    }
+}
 ```
