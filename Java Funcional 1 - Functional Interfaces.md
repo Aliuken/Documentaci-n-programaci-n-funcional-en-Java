@@ -90,17 +90,19 @@ Existen las siguientes interfaces funcionales predefinidas en Java:
 
 1) En el paquete java.util.function
 
-| Tipo interfaz       | Método interfaz funcional   | Otros métodos disponibles                                                         |
-|---------------------|-----------------------------|-----------------------------------------------------------------------------------|
-| `Supplier<T>`       | `T get()`                   |                                                                                   |
-| `Consumer<T>`       | `void accept(T t)`          | `default Consumer<T> andThen(Consumer<? super T> after)`                          |
-| `BiConsumer<T,U>`   | `void accept(T t, U u)`     | `default BiConsumer<T,U> andThen(BiConsumer<? super T,? super U> after)`          |
-| `Predicate<T>`      | `boolean test(T t)`         | `default Predicate<T> negate()` <br/> `default Predicate<T> and(Predicate<? super T> other)` <br/> `default Predicate<T> or(Predicate<? super T> other)` <br/> `static <T> Predicate<T> isEqual(Object targetRef)`                                  |
-| `BiPredicate<T,U>`  | `boolean test(T t, U u)`    | `default BiPredicate<T,U> negate()` <br/> `default BiPredicate<T,U> and(BiPredicate<? super T,? super U> other)` <br/> `default BiPredicate<T,U> or(BiPredicate<? super T,? super U> other)`                                                     |
-| `Function<T,R>`     | `R apply(T t)`              | `default <V> Function<T,V> andThen(Function<? super R,? extends V> after)` <br/> `default <V> Function<V,R> compose(Function<? super V,? extends T> before)` <br/> `static <T> Function<T,T> identity()`                                            |
-| `BiFunction<T,U,R>` | `R apply(T t, U u)`         | `default <V> BiFunction<T,U,V> andThen(Function<? super R,? extends V> after)`    |
-| `UnaryOperator<T>`  | `T apply(T t)`              | `default <V> Function<T,V> andThen(Function<? super T,? extends V> after)` <br/> `default <V> Function<V,T> compose(Function<? super V,? extends T> before)` <br/> `static <T> UnaryOperator<T> identity()`                                         |
-| `BinaryOperator<T>` | `T apply(T t, T u)`         | `default <V> BiFunction<T,T,V> andThen(Function<? super T,? extends V> after)` <br/> `static <T> BinaryOperator<T> minBy(Comparator<? super T> comparator)` <br/> `static <T> BinaryOperator<T> maxBy(Comparator<? super T> comparator)` |
+| Tipo interfaz       | Método interfaz funcional | Otros métodos disponibles                                                      |
+|---------------------|---------------------------|--------------------------------------------------------------------------------|
+| `Supplier<T>`       | `T get()`                 | [prueba]                                                                               |
+| `Consumer<T>`       | `void accept(T t)`        | `default Consumer<T> andThen(Consumer<? super T> after)`                       |
+| `BiConsumer<T,U>`   | `void accept(T t, U u)`   | `default BiConsumer<T,U> andThen(BiConsumer<? super T,? super U> after)`       |
+| `Predicate<T>`      | `boolean test(T t)`       | `default Predicate<T> negate()` <br/> `default Predicate<T> and(Predicate<? super T> other)` <br/> `default Predicate<T> or(Predicate<? super T> other)` <br/> `static <T> Predicate<T> isEqual(Object targetRef)`                                                                                                         |
+| `BiPredicate<T,U>`  | `boolean test(T t, U u)`  | `default BiPredicate<T,U> negate()` <br/> `default BiPredicate<T,U> and(BiPredicate<? super T,? super U> other)` <br/> `default BiPredicate<T,U> or(BiPredicate<? super T,? super U> other)`                                                                                                                            |
+| `Function<T,R>`     | `R apply(T t)`            | `default <V> Function<T,V> andThen(Function<? super R,? extends V> after)` <br/> `default <V> Function<V,R> compose(Function<? super V,? extends T> before)` <br/> `static <T> Function<T,T> identity()`                                                                                                          |
+| `BiFunction<T,U,R>` | `R apply(T t, U u)`       | `default <V> BiFunction<T,U,V> andThen(Function<? super R,? extends V> after)` |
+| `UnaryOperator<T>`  | `T apply(T t)`            | `default <V> Function<T,V> andThen(Function<? super T,? extends V> after)` <br/> `default <V> Function<V,T> compose(Function<? super V,? extends T> before)` <br/> `static <T> UnaryOperator<T> identity()`                                                                                                       |
+| `BinaryOperator<T>` | `T apply(T t, T u)`       | `default <V> BiFunction<T,T,V> andThen(Function<? super T,? extends V> after)` <br/> `static <T> BinaryOperator<T> minBy(Comparator<? super T> comparator)` <br/> `static <T> BinaryOperator<T> maxBy(Comparator<? super T> comparator)`                                                                         |
+
+[prueba]: prueba valor variable
 
 NOTAS:
 - Los métodos default definidos (por ejemplo compose y andThen) no ejecutan nada, sólo combinan dos interfaces funcionales en una nueva
