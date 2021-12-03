@@ -95,7 +95,8 @@ Existen las siguientes interfaces funcionales predefinidas en Java:
 | `Supplier<T>`       | `T get()`                   |                                                                                |
 | `Consumer<T>`       | `void accept(T t)`          | `default Consumer<T> andThen(Consumer<? super T> after)`                       |
 | `BiConsumer<T,U>`   | `void accept(T t, U u)`     | `default BiConsumer<T,U> andThen(BiConsumer<? super T,? super U> after)`       |
-| `Predicate<T>`      | `boolean test(T t)`         | `default Predicate<T> negate()` <br/> `default Predicate<T> and(Predicate<? super T> other)`                         |
+| `Predicate<T>`      | `boolean test(T t)`         | `default Predicate<T> negate()` <br/> 
+                                                      `default Predicate<T> and(Predicate<? super T> other)`                         |
 | -                   | -                           | `default Predicate<T> or(Predicate<? super T> other)`                          |
 | -                   | -                           | `static <T> Predicate<T> isEqual(Object targetRef)`                            |
 | `BiPredicate<T,U>`  | `boolean test(T t, U u)`    | `default BiPredicate<T,U> negate()`                                            |
